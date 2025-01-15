@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment
+  namespace: prometheus-for-cores-api
+spec:
+  replicas: {{ .Values.GENERAL_SETTINGS.REPLICAS }}
+  selector:
+    matchLabels:
+      app: separate-copy
+  template:
+    metadata:
+      labels:
+        app: separate-copy
+    spec:
+      containers:
+      # PROMETHEUS
+        - name: prometheus
+          image: prom/prometheus:{{ .Values.PROMETHEUS.IMAGE_TAG }}
+          args:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
+            - '--storage.tsdb.min-block-duration=2h'
+            - '--storage.tsdb.max-block-duration=2h'
+            - '--storage.tsdb.retention.time=2h'
+          ports:
+          - containerPort: {{ .Values.PROMETHEUS.PORT }}
+          volumeMounts:
+            - name: config-prometheus
+              mountPath: /etc/prometheus
+            - name: prometheus-storage
+              mountPath: /prometheus
+          resources:
+            requests:
+              cpu: {{ .Values.PROMETHEUS.LIMITES.DEFAULT.CPU }}
+              memory: {{ .Values.PROMETHEUS.LIMITES.DEFAULT.MEM }}
+            limits:
+              cpu: {{ .Values.PROMETHEUS.LIMITES.MAX.CPU }}
+              memory: {{ .Values.PROMETHEUS.LIMITES.MAX.MEM }}
+      # THANOS-SIDECAR
+        - name: thanos-sidecar
+          image: thanosio/thanos:{{ .Values.THANOS_SIDECAR.IMAGE_TAG }}
+          args:
+            - 'sidecar'
+            - '--prometheus.url=http://localhost:{{ .Values.PROMETHEUS.PORT }}'
+            - '--grpc-address=0.0.0.0:{{ .Values.THANOS_SIDECAR.PORT_GRPC }}'
+            - '--http-address=0.0.0.0:{{ .Values.THANOS_SIDECAR.PORT_HTTP }}'
+            - '--objstore.config-file=/etc/thanos/objstore.yml'
+            - '--tsdb.path=/prometheus'
+          ports:
+            - containerPort: {{ .Values.THANOS_SIDECAR.PORT_GRPC }}
+            - containerPort: {{ .Values.THANOS_SIDECAR.PORT_HTTP }}
+          volumeMounts:
+            - name: prometheus-storage
+              mountPath: /prometheus
+            - name: thanos-objstore-config
+              mountPath: /etc/thanos
+          resources:
+            requests:
+              cpu: {{ .Values.THANOS_SIDECAR.LIMITES.DEFAULT.CPU }}
+              memory: {{ .Values.THANOS_SIDECAR.LIMITES.DEFAULT.MEM }}
+            limits:
+              cpu: {{ .Values.THANOS_SIDECAR.LIMITES.MAX.CPU }}
+              memory: {{ .Values.THANOS_SIDECAR.LIMITES.MAX.MEM }}
+      #
+      volumes:
+        - name: config-prometheus
+          configMap:
+            name: config-entry-point-prometheus
+        - name: prometheus-storage
+          emptyDir: {}
+        - name: thanos-objstore-config
+          secret:
+            secretName: thanos-objstore-secret

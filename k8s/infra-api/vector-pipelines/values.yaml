@@ -1,0 +1,58 @@
+VECTOR_AGENT_CONFIG: |
+  sources:
+    my_app_metrics:
+      type: prometheus_scrape
+      endpoints: ["http://{{ .Values.OBSERVABLE_SERVICE.IP }}:{{ .Values.OBSERVABLE_SERVICE.PORT_PROMETHEUS }}/metrics"]
+      scrape_interval_secs: 15
+
+  sinks:
+    vector_aggregator:
+      type: vector
+      inputs: ["my_app_metrics"]
+      address: "{{ .Values.VECTOR_AGGREGATOR.ADRESS }}:{{ .Values.VECTOR_AGGREGATOR.PORT }}"
+
+VECTOR_AGGREGATOR_CONFIG: |
+  sources:
+    vector:
+      type: vector
+      address: "{{ .Values.VECTOR_AGGREGATOR.IP }}:{{ .Values.VECTOR_AGGREGATOR.PORT }}"
+
+  sinks:
+    greptimedb_metrics:
+      type: greptimedb_metrics
+      inputs: ["vector"]
+      endpoint: "{{ .Values.GREPTIMEDB.IP }}:{{ .Values.GREPTIMEDB.PORT }}"
+
+NAMESPACE: vector-pipelines
+
+VECTOR_IMAGE: timberio/vector:0.43.0-alpine
+
+VECTOR_AGENT:
+  LIMITS:
+    DEFAULT:
+      CPU: "100m"
+      MEM: "128Mi"
+    MAX:
+      CPU: "500m"
+      MEM: "1024Mi"
+
+VECTOR_AGGREGATOR:
+  IP: 0.0.0.0
+  ADRESS: service-vector-aggregator.vector-pipelines.svc.cluster.local
+  PORT: 9000
+  NUMBER_REPLICAS: 1
+  LIMITS:
+    DEFAULT:
+      CPU: "100m"
+      MEM: "128Mi"
+    MAX:
+      CPU: "500m"
+      MEM: "1024Mi"
+
+OBSERVABLE_SERVICE:
+  IP: service-ports.testspace-service-acct-auth.svc.cluster.local
+  PORT_PROMETHEUS: 2112
+
+GREPTIMEDB:
+  IP: service-outboard-greptimedb.outboard-services.svc.cluster.local
+  PORT: 4001

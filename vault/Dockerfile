@@ -2,17 +2,14 @@
 
 FROM vault:1.13.3
 
-# RUN apk update && apk add gnupg
+RUN apk update && apk add --no-cache ca-certificates
 
-COPY config.hcl start_vault.sh /usr/local/bin/
-COPY certificate.crt private.key /usr/local/bin/
-# unseal_vault.sh base64_gpgPublicUnsealKey.asc
+COPY config/certificate.crt /usr/local/share/ca-certificates/certificate.crt
 
-# ENV VAULT_ADDR http://127.0.0.1:8200
+RUN update-ca-certificates
 
-# Устанавливаем права на выполнение для скрипта
-RUN chmod +x /usr/local/bin/start_vault.sh 
-# /usr/local/bin/unseal_vault.sh
+COPY vault/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-# Запускаем скрипт при старте контейнера
-ENTRYPOINT ["/bin/sh", "/usr/local/bin/start_vault.sh"]
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

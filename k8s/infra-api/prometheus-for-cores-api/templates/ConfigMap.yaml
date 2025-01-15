@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-entry-point-prometheus
+  namespace: prometheus-for-cores-api
+data:
+  prometheus.yml: |
+{{ tpl .Values.PROMETHEUS_CONFIG . | indent 4 }}
+    

@@ -1,6 +1,6 @@
 ---
 POSTGRESQL:
-  DATABASE_URL: "postgres://postgres:5432@host.docker.internal:5432/test_db"
+  DATABASE_URL: "postgres://postgres:5432@service-outboard-postgresql.outboard-services.svc.cluster.local:5432/test_db"
 
 SERVICE-HTTP-SEND-HTML:
   PORT: ":8080"

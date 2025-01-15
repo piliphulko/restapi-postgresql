@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-outboard-postgresql
+  namespace: outboard-services
+spec:
+  type: ExternalName
+  externalName: {{ .Values.POSTGRESQL.ADRESS }}
+  ports:
+    - name: input-port-postgresql
+      port: {{ .Values.POSTGRESQL.PORT }}

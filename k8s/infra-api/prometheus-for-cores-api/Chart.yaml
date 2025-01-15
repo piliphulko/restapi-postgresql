@@ -1,0 +1,6 @@
+apiVersion: v2
+
+name: prometheus-for-cores-api
+description: pronetheus + thanos-sidecar for cores-api maintenance
+
+version: 0.1.0

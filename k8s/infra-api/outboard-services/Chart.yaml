@@ -1,0 +1,6 @@
+apiVersion: v2
+name: outboard-services
+version: 0.1.0
+# There is designed to deploy and manage external infrastructure services such as databases,
+# caches, and other key components that are located outside the Kubernetes cluster. 
+description: Manages external service endpoints (IP addresses and ports)

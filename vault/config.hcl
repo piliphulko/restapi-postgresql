@@ -1,5 +1,5 @@
 storage "postgresql" {
-  connection_url = "postgres://user_vault_storage:5432@host.docker.internal:5432/database_vault_storage"
+  connection_url = env("VAULT_POSTGRES_URL")
 }
 
 listener "tcp" {

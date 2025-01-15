@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: daemonset-vector-agent
+  namespace: {{ .Values.NAMESPACE }}
+spec:
+  selector:
+    matchLabels:
+      app: vector-agent
+  template:
+    metadata:
+      labels:
+        app: vector-agent
+    spec:
+      containers:
+      - name: vector-agent
+        image: {{ .Values.VECTOR_IMAGE }}
+        args:
+          - "--config"
+          - "/etc/vector/vector.yaml"
+
+        volumeMounts:
+        - name: config
+          mountPath: /etc/vector
+        - name: varlog
+          mountPath: /var/log
+
+        resources:
+          requests:
+            cpu: {{ .Values.VECTOR_AGENT.LIMITS.DEFAULT.CPU }}
+            memory: {{ .Values.VECTOR_AGENT.LIMITS.DEFAULT.MEM }}
+          limits:
+            cpu: {{ .Values.VECTOR_AGENT.LIMITS.MAX.CPU }}
+            memory: {{ .Values.VECTOR_AGENT.LIMITS.MAX.MEM }}
+
+      volumes:
+      - name: config
+        configMap:
+          name: vector-agent-config
+      - name: varlog
+        hostPath:
+          path: /var/log
+        
+

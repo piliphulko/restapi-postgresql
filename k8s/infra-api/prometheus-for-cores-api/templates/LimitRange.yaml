@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: limit-range
+  namespace: prometheus-for-cores-api
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: {{ .Values.GENERAL_SETTINGS.LIMITES.CONTAINER_ANY.LIMITS_CPU }}
+        memory: {{ .Values.GENERAL_SETTINGS.LIMITES.CONTAINER_ANY.LIMITS_MEM }}
+      defaultRequest:
+        cpu: {{ .Values.GENERAL_SETTINGS.LIMITES.CONTAINER_ANY.DEFAULT_CPU }}
+        memory: {{ .Values.GENERAL_SETTINGS.LIMITES.CONTAINER_ANY.DEFAULT_MEM }}

@@ -1,0 +1,4 @@
+Recommendation:
+
+It's better to manage Namespace outside of the chart to avoid problems 
+when deleting a Helm release (Namespace will not be deleted automatically, which can lead to stuck resources).

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-outboard-minio
+  namespace: outboard-services
+spec:
+  type: ExternalName
+  externalName: {{ .Values.MINIO.ADRESS }}
+  ports:
+    - name: input-port-minio
+      port: {{ .Values.MINIO.PORT }}

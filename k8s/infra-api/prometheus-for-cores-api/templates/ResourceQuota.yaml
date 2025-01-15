@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: resource-quota
+  namespace: prometheus-for-cores-api
+spec:
+  hard:
+    pods: {{ .Values.GENERAL_SETTINGS.LIMITES.SPACE.PODS_MAX }}
+      # the good practice is to avoid having the limits higher than the request for all containers, 
+      # only in cases while certain workloads might need it, this is because most of the containers 
+      # can consume more resources (ie: memory) than they requested, suddenly the PODs will start 
+      # to be evicted from the node in an unpredictable way that makes it worse than if had a fixed limit for each one.
+    requests.cpu: {{ .Values.GENERAL_SETTINGS.LIMITES.SPACE.CPU_MAX }}
+    requests.memory: {{ .Values.GENERAL_SETTINGS.LIMITES.SPACE.MEM_MAX }}
+    limits.cpu: {{ .Values.GENERAL_SETTINGS.LIMITES.SPACE.CPU_MAX }}
+    limits.memory: {{ .Values.GENERAL_SETTINGS.LIMITES.SPACE.MEM_MAX }}

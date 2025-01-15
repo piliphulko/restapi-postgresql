@@ -3,8 +3,10 @@ package f16
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/piliphulko/marketplace-example/api/apierror"
+	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -54,67 +56,54 @@ func IntrceptorHandlerErrors(ctx context.Context, req interface{}, info *grpc.Un
 	} else {
 		return resp, status.New(codes.Internal, "").Err()
 	}
-	/*
-		switch err {
-		case nil:
+}
+
+func WarpInteceptorRequestTimer(histogramVec *prometheus.SummaryVec) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		var (
+			requestTimer = time.Now()
+			code         string
+		)
+		resp, err = handler(ctx, req)
+
+		methodName, ok := ignoringHealthRequest(info.FullMethod)
+		if ok {
 			return resp, err
-		case apierror.ErrTokenFake:
-			fmt.Println(err)
-			return resp, status.New(codes.InvalidArgument, apierror.ErrTokenFake.Error()).Err()
-		case apierror.ErrTokenExpired:
-			fmt.Println(err)
-			return resp, status.New(codes.InvalidArgument, apierror.ErrTokenExpired.Error()).Err()
-		case apierror.ErrEmpty:
-			fmt.Println(err)
-			return resp, status.New(codes.InvalidArgument, apierror.ErrEmpty.Error()).Err()
-		case apierror.ErrMissingMetadata:
-			fmt.Println(err)
-			return resp, status.New(codes.InvalidArgument, apierror.ErrMissingMetadata.Error()).Err()
-		case apierror.ErrMissingToken:
-			fmt.Println(err)
-			return resp, status.New(codes.Unauthenticated, apierror.ErrMissingToken.Error()).Err()
-		case apierror.ErrOrderStatNotSelect:
-			fmt.Println(err)
-			return resp, status.New(codes.InvalidArgument, apierror.ErrOrderStatNotSelect.Error()).Err()
-		case apierror.ErrPassLen:
-			fmt.Println(err)
-			return resp, status.New(codes.InvalidArgument, apierror.ErrPassLen.Error()).Err()
-		case apierror.ErrIncorrectPass:
-			fmt.Println(err)
-			return resp, status.New(codes.InvalidArgument, apierror.ErrIncorrectPass.Error()).Err()
-		case apierror.ErrIncorrectLogin:
-			fmt.Println(err)
-			return resp, status.New(codes.Unauthenticated, apierror.ErrIncorrectLogin.Error()).Err()
-		case apierror.ErrDataLoss:
-			fmt.Println(err)
-			return resp, status.New(codes.DataLoss, apierror.ErrDataLoss.Error()).Err()
-		case apierror.ErrLoginBusy:
-			fmt.Println(err)
-			return resp, status.New(codes.AlreadyExists, apierror.ErrLoginBusy.Error()).Err()
-		case apierror.ErrIncorrectCountry:
-			fmt.Println(err)
-			return resp, status.New(codes.InvalidArgument, apierror.ErrIncorrectCountry.Error()).Err()
-		case apierror.ErrInvalidRequest:
-			fmt.Println(err)
-			return resp, status.New(codes.InvalidArgument, apierror.ErrInvalidRequest.Error()).Err()
-		case apierror.ErrNotEnoughGoods:
-			fmt.Println(err)
-			return resp, status.New(codes.InvalidArgument, apierror.ErrNotEnoughGoods.Error()).Err()
-		case apierror.ErrDeliveryLocation:
-			fmt.Println(err)
-			return resp, status.New(codes.InvalidArgument, apierror.ErrDeliveryLocation.Error()).Err()
-		case apierror.ErrNotCanceled:
-			fmt.Println(err)
-			return resp, status.New(codes.InvalidArgument, apierror.ErrNotCanceled.Error()).Err()
-		case apierror.ErrNotEnoughMoney:
-			fmt.Println(err)
-			return resp, status.New(codes.InvalidArgument, apierror.ErrNotEnoughMoney.Error()).Err()
-		case apierror.ErrInvalidTokenFormat:
-			fmt.Println(err)
-			return resp, status.New(codes.InvalidArgument, apierror.ErrInvalidTokenFormat.Error()).Err()
-		default:
-			fmt.Println(err)
-			return resp, status.New(codes.Internal, "").Err()
 		}
-	*/
+
+		status, ok := status.FromError(err)
+		switch ok {
+		case true:
+			code = status.Code().String()
+		case false:
+			code = codes.OK.String()
+		}
+
+		defer histogramVec.WithLabelValues(methodName, code).Observe(time.Since(requestTimer).Seconds())
+
+		return resp, err
+	}
+}
+
+func WarpInteceptorRequestCounter(counterVec *prometheus.CounterVec) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		resp, err = handler(ctx, req)
+
+		methodName, ok := ignoringHealthRequest(info.FullMethod)
+		if ok {
+			return resp, err
+		}
+
+		var code string
+		status, ok := status.FromError(err)
+		switch ok {
+		case true:
+			code = status.Code().String()
+		case false:
+			code = codes.OK.String()
+		}
+
+		counterVec.WithLabelValues(methodName, code).Inc()
+		return resp, err
+	}
 }

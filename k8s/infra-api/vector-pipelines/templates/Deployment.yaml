@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-vector-aggregator
+  namespace: {{ .Values.NAMESPACE }}
+spec:
+  replicas: {{ .Values.VECTOR_AGGREGATOR.NUMBER_REPLICAS }}
+  selector:
+    matchLabels:
+      app: vector-aggregator
+  template:
+    metadata:
+      labels:
+        app: vector-aggregator
+    spec:
+      containers:
+      - name: vector-aggregator
+        image: {{ .Values.VECTOR_IMAGE }}
+        args:
+          - "--config"
+          - "/etc/vector/vector.yaml"
+        ports:
+          - containerPort: {{ .Values.VECTOR_AGGREGATOR.PORT }}
+            protocol: TCP
+        volumeMounts:
+          - name: config
+            mountPath: /etc/vector
+        resources:
+          requests:
+            cpu: {{ .Values.VECTOR_AGGREGATOR.LIMITS.DEFAULT.CPU }}
+            memory: {{ .Values.VECTOR_AGGREGATOR.LIMITS.DEFAULT.MEM }}
+          limits:
+            cpu: {{ .Values.VECTOR_AGGREGATOR.LIMITS.MAX.CPU }}
+            memory: {{ .Values.VECTOR_AGGREGATOR.LIMITS.MAX.MEM }}
+      volumes:
+        - name: config
+          configMap:
+            name: vector-aggregator-config

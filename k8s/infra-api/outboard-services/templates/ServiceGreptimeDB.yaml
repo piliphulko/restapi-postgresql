@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-outboard-greptimedb
+  namespace: outboard-services
+spec:
+  type: ExternalName
+  externalName: {{ .Values.GREPTIMEDB.ADRESS }}
+  ports:
+    - name: input-port-greptimedb
+      port: {{ .Values.GREPTIMEDB.PORT }}

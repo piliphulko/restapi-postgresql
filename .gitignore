@@ -4,3 +4,6 @@ config.jaml
 root_token.txt
 private.key
 *.tgz
+trash_can
+postgres_url.txt
+env_secrets.env

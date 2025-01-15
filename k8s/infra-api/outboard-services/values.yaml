@@ -1,0 +1,11 @@
+POSTGRESQL:
+  ADRESS: host.docker.internal
+  PORT: 5432
+
+MINIO:
+  ADRESS: host.docker.internal
+  PORT: 9000
+
+GREPTIMEDB:
+  ADRESS: host.docker.internal
+  PORT: 4001

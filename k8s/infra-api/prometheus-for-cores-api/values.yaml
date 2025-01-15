@@ -1,0 +1,66 @@
+PROMETHEUS_CONFIG: |
+  global:
+    scrape_interval: 15s
+    evaluation_interval: 15s
+    external_labels:
+      cluster: "infra-api"
+      replica: "replica-0"
+
+  scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+    - targets: ['localhost:{{ .Values.PROMETHEUS.PORT }}']
+
+THANOS_OBJSTORE_CONFIG: |
+  type: S3
+  config:
+    bucket: thanos
+    endpoint: service-outboard-minio.outboard-services.svc.cluster.local:9000
+    access_key: {{ .Values.MINIO.ACCESS_KEY }}
+    secret_key: {{ .Values.MINIO.SECRET_KEY }}
+    insecure: true
+
+GENERAL_SETTINGS:
+  REPLICAS: 1
+  LIMITES:
+    CONTAINER_ANY:
+      DEFAULT_CPU: "100m"
+      DEFAULT_MEM: "128Mi"
+      LIMITS_CPU: "500m"
+      LIMITS_MEM: "1024Mi"
+    SPACE:
+      PODS_MAX: 2
+      # the good practice is to avoid having the limits higher than the request for all containers, 
+      # only in cases while certain workloads might need it, this is because most of the containers 
+      # can consume more resources (ie: memory) than they requested, suddenly the PODs will start 
+      # to be evicted from the node in an unpredictable way that makes it worse than if had a fixed limit for each one.
+      CPU_MAX: 750m
+      MEM_MAX: 2Gi
+
+PROMETHEUS:
+  IMAGE_TAG: v2.55.0-rc.0
+  PORT: 9090
+  LIMITES:
+    DEFAULT:
+      CPU: "100m"
+      MEM: "128Mi"
+    MAX:
+      CPU: "300m"
+      MEM: "524Mi"
+
+THANOS_SIDECAR:
+  IMAGE_TAG: main-2024-10-11-d215f5b
+  PORT_GRPC: 10901
+  PORT_HTTP: 10902
+  LIMITES:
+    DEFAULT:
+      CPU: "100m"
+      MEM: "128Mi"
+    MAX:
+      CPU: "300m"
+      MEM: "524Mi"
+
+MINIO:
+  ACCESS_KEY: admin
+  SECRET_KEY: secretpassword

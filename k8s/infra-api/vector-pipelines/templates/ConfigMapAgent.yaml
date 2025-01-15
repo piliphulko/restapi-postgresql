@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vector-agent-config
+  namespace: {{ .Values.NAMESPACE }}
+data:
+  vector.yaml: |
+{{ tpl .Values.VECTOR_AGENT_CONFIG . | indent 4 }}

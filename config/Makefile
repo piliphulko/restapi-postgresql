@@ -1,11 +1,7 @@
-docker-volume-create:
+generate_crt_key:
 
-	docker volume create volume-config
+	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout private.key -out certificate.crt -config openssl.conf -extensions v3_req
 
-docker-download-config:
+describe_certificate_into_cmd:
 
-	docker run --rm -d -v /config.yaml:/config/ volume-config volume-config-image
-
-docker-delete-volume:
-
-	docker volume rm volume-config
+	openssl x509 -in certificate.crt -text -noout

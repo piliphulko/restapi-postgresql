@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-separate-copy
+  namespace: prometheus-for-cores-api
+spec:
+  selector:
+    app: separate-copy
+  type: ClusterIP
+  ports:
+    - name: prometheus-p
+      protocol: TCP
+      port: {{ .Values.PROMETHEUS.PORT }}
+      targetPort: {{ .Values.PROMETHEUS.PORT }}
+    - name: thanos-p-grpc
+      protocol: TCP
+      port: {{ .Values.THANOS_SIDECAR.PORT_GRPC }}
+      targetPort: {{ .Values.THANOS_SIDECAR.PORT_GRPC }}
+    - name: thanos-p-http
+      protocol: TCP
+      port: {{ .Values.THANOS_SIDECAR.PORT_HTTP }}
+      targetPort: {{ .Values.THANOS_SIDECAR.PORT_HTTP }}
